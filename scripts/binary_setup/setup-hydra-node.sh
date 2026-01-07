@@ -4,7 +4,8 @@
 
 set -e
 
-ROOT_DIR="$(dirname $(dirname $(realpath $0)))"
+# Calculate ROOT_DIR (scripts/binary_setup -> scripts -> project root)
+ROOT_DIR="$(dirname $(dirname $(dirname $(realpath $0))))"
 CONFIG_PATH="$ROOT_DIR/scripts/utils/config.sh"
 
 if [ ! -f "$CONFIG_PATH" ]; then

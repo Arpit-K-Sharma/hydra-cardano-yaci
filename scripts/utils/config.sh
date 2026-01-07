@@ -72,12 +72,36 @@ HYDRA_NODE="${BIN_DIR}/${HYDRA_NODE_BINARY}"
 HYDRA_DOWNLOAD_URL="https://github.com/cardano-scaling/hydra/releases/download/${HYDRA_VERSION}/hydra-x86_linux-${HYDRA_VERSION}.zip"
 
 # -----------------------------------------------------------------------------
-# YACI DEVKIT API ENDPOINTS
+# YACI DEVKIT CONFIGURATION (NPM-based)
 # -----------------------------------------------------------------------------
+
+# Yaci DevKit NPM package
+YACI_DEVKIT_NPM_PACKAGE="@bloxbean/yaci-devkit"
+
+# Yaci CLI home directory (where clusters and node data are stored)
+YACI_CLI_HOME="$HOME/.yaci-cli"
+
+# Default cluster name
+YACI_CLUSTER_NAME="default"
+
+# Node socket path (auto-discovered after devnet start)
+# Format: $YACI_CLI_HOME/local-clusters/<cluster>/node/node.sock
+YACI_NODE_SOCKET_PATH="$YACI_CLI_HOME/local-clusters/$YACI_CLUSTER_NAME/node/node.sock"
 
 # Yaci DevKit API endpoints
 YACI_TOPUP_API="http://localhost:10000/local-cluster/api/addresses/topup"
 YACI_UTXOS_API="http://localhost:10000/local-cluster/api/addresses"
+
+# Yaci Store API (Blockfrost-compatible)
+YACI_STORE_API="http://localhost:8080/api/v1"
+
+# Yaci DevKit ports
+YACI_NODE_PORT=3001
+YACI_STORE_PORT=8080
+YACI_CLUSTER_API_PORT=10000
+YACI_VIEWER_PORT=5173
+YACI_OGMIOS_PORT=1337
+YACI_KUPO_PORT=1442
 
 # =============================================================================
 # END OF CONFIGURATION

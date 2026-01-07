@@ -20,14 +20,14 @@ HYDRA_NODE_PATH="$ROOT_DIR/$HYDRA_NODE"
 # Check if cardano-cli exists
 if [ ! -f "$CARDANO_CLI_PATH" ]; then
     echo "cardano-cli not found at $CARDANO_CLI_PATH"
-    echo "Please run setup-cardano-cli.sh or setup-cardano-cli-docker.sh first."
+    echo "Please run ./scripts/binary_setup/setup-cardano-cli.sh or ./scripts/docker_setup/setup-cardano-cli-docker.sh first."
     exit 1
 fi
 
 # Check if hydra-node exists
 if [ ! -f "$HYDRA_NODE_PATH" ]; then
     echo "hydra-node not found at $HYDRA_NODE_PATH"
-    echo "Please run setup-hydra-node.sh or setup-hydra-node-docker.sh first."
+    echo "Please run ./scripts/binary_setup/setup-hydra-node.sh or ./scripts/docker_setup/setup-hydra-node-docker.sh first."
     exit 1
 fi
 

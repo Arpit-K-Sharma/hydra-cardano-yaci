@@ -66,6 +66,28 @@ else
     echo "✓ jq already installed"
 fi
 
+# Check for Node.js (required for Yaci DevKit NPM)
+if ! command -v node &> /dev/null; then
+    echo "Node.js not found. Will need to install (required for Yaci DevKit)."
+    NODE_MISSING=true
+else
+    NODE_VERSION=$(node --version | sed 's/v//')
+    NODE_MAJOR=$(echo "$NODE_VERSION" | cut -d. -f1)
+    if [ "$NODE_MAJOR" -ge 20 ]; then
+        echo "✓ Node.js $NODE_VERSION installed (meets requirement >= 20.8.0)"
+    else
+        echo "⚠ Node.js $NODE_VERSION installed but version >= 20.8.0 required"
+        NODE_MISSING=true
+    fi
+fi
+
+# Check for npm (comes with Node.js)
+if ! command -v npm &> /dev/null; then
+    echo "npm not found. Will be installed with Node.js."
+else
+    echo "✓ npm already installed"
+fi
+
 # Install packages if any are missing
 if [ ${#REQUIRED_PACKAGES[@]} -eq 0 ]; then
     echo ""
@@ -97,6 +119,32 @@ esac
 
 echo ""
 echo "=== Prerequisites installed successfully! ==="
+
+# Install Node.js if missing
+if [ "$NODE_MISSING" = true ]; then
+    echo ""
+    echo "=== Installing Node.js 20.x ==="
+    case "$OS" in
+        ubuntu|debian)
+            curl -fsSL https://deb.nodesource.com/setup_20.x | $SUDO -E bash -
+            $SUDO apt install -y nodejs
+            ;;
+        fedora|rhel|centos)
+            curl -fsSL https://rpm.nodesource.com/setup_20.x | $SUDO bash -
+            $SUDO yum install -y nodejs
+            ;;
+        arch|manjaro)
+            $SUDO pacman -S --noconfirm nodejs npm
+            ;;
+        *)
+            echo "Please install Node.js 20.x manually from https://nodejs.org/"
+            ;;
+    esac
+    echo "✓ Node.js installed: $(node --version)"
+fi
+
+echo ""
 echo "You can now run the setup scripts:"
-echo "  ./setup-cardano-cli.sh"
-echo "  ./setup-hydra-node.sh"
+echo "  ./scripts/binary_setup/setup-cardano-cli.sh"
+echo "  ./scripts/binary_setup/setup-hydra-node.sh"
+echo "  ./scripts/devnet/setup-yaci-devkit.sh"
