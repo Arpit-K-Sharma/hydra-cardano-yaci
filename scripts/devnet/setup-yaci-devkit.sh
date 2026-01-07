@@ -4,10 +4,9 @@
 
 set -e
 
-# Calculate ROOT_DIR (scripts/devnet -> scripts -> project root)
-ROOT_DIR="$(dirname $(dirname $(dirname $(realpath $0))))"
-CONFIG_PATH="$ROOT_DIR/scripts/utils/config.sh"
 
+# Source config-path.sh to set ROOT_DIR and CONFIG_PATH
+source "$(dirname "$0")/../utils/config-path.sh"
 if [ ! -f "$CONFIG_PATH" ]; then
     echo "Config file not found at $CONFIG_PATH"
     exit 1
@@ -42,18 +41,17 @@ if ! command -v npm &> /dev/null; then
 fi
 echo "✓ npm $(npm --version) detected"
 
-# Check if yaci-devkit is already installed
-if command -v yaci-devkit &> /dev/null; then
-    echo "✓ Yaci DevKit is already installed"
-    yaci-devkit --version 2>/dev/null || echo "  (version check not available)"
+# Check if yaci-devkit is already installed locally
+YACI_DEVKIT_DIR="$ROOT_DIR/yaci-devkit"
+if [ -d "$YACI_DEVKIT_DIR/node_modules/@bloxbean/yaci-devkit" ]; then
+    echo "\u2713 Yaci DevKit is already installed locally in $YACI_DEVKIT_DIR"
+    npx --prefix "$YACI_DEVKIT_DIR" yaci-devkit --version 2>/dev/null || echo "  (version check not available)"
 else
     echo ""
-    echo "Installing Yaci DevKit globally via NPM..."
-    echo "Package: $YACI_DEVKIT_NPM_PACKAGE"
-    echo ""
-    npm install -g "$YACI_DEVKIT_NPM_PACKAGE"
-    echo ""
-    echo "✓ Yaci DevKit installed successfully"
+    echo "Installing Yaci DevKit locally in $YACI_DEVKIT_DIR via NPM..."
+    mkdir -p "$YACI_DEVKIT_DIR"
+    npm install --prefix "$YACI_DEVKIT_DIR" @bloxbean/yaci-devkit
+    echo "\u2713 Yaci DevKit installed locally"
 fi
 
 # Create yaci-cli home directory if it doesn't exist

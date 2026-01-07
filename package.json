@@ -1,0 +1,33 @@
+{
+    "name": "hydra-cardano-yaci",
+    "version": "1.0.0",
+    "description": "Automation and tooling for Cardano Hydra/Yaci devnet workflows.",
+    "main": "index.js",
+    "scripts": {
+        "setup:devkit": "bash ./scripts/devnet/setup-yaci-devkit.sh",
+        "start:devnet": "bash ./scripts/devnet/start-devnet.sh",
+        "setup:cardano-cli": "bash ./scripts/binary_setup/setup-cardano-cli.sh",
+        "setup:hydra-node": "bash ./scripts/binary_setup/setup-hydra-node.sh",
+        "setup:docker:cardano-cli": "bash ./scripts/docker_setup/setup-cardano-cli-docker.sh",
+        "setup:docker:hydra-node": "bash ./scripts/docker_setup/setup-hydra-node-docker.sh",
+        "fund-addresses": "bash ./scripts/fund-addresses.sh",
+        "generate-keys": "bash ./scripts/generate-keys.sh",
+        "publish-hydra-scripts": "bash ./scripts/publish-hydra-scripts.sh",
+        "install:prerequisites": "bash ./scripts/utils/install-prerequisites.sh"
+    },
+    "keywords": [
+        "cardano",
+        "hydra",
+        "yaci",
+        "devnet",
+        "automation"
+    ],
+    "author": "Arpit Sharma",
+    "license": "MIT",
+    "dependencies": {
+        "yaci-devkit": "^0.7.0"
+    },
+    "engines": {
+        "node": ">=20.8.0"
+    }
+}

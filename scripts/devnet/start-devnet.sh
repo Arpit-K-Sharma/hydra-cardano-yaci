@@ -4,10 +4,8 @@
 
 set -e
 
-# Calculate ROOT_DIR (scripts/devnet -> scripts -> project root)
-ROOT_DIR="$(dirname $(dirname $(dirname $(realpath $0))))"
-CONFIG_PATH="$ROOT_DIR/scripts/utils/config.sh"
-
+# Source config-path.sh to set ROOT_DIR and CONFIG_PATH
+source "$(dirname "$0")/../utils/config-path.sh"
 if [ ! -f "$CONFIG_PATH" ]; then
     echo "Config file not found at $CONFIG_PATH"
     exit 1
@@ -21,9 +19,10 @@ echo "Starting Yaci DevKit Devnet"
 echo "============================================"
 echo ""
 
-# Check if yaci-devkit is installed
-if ! command -v yaci-devkit &> /dev/null; then
-    echo "Error: Yaci DevKit is not installed."
+# Check if yaci-devkit is installed locally
+YACI_DEVKIT_DIR="$ROOT_DIR/yaci-devkit"
+if [ ! -d "$YACI_DEVKIT_DIR/node_modules/@bloxbean/yaci-devkit" ]; then
+    echo "Error: Yaci DevKit is not installed locally."
     echo "Please run: ./scripts/devnet/setup-yaci-devkit.sh"
     exit 1
 fi
@@ -75,7 +74,7 @@ echo ""
 TEMP_LOG=$(mktemp)
 
 echo "Starting Yaci DevKit..."
-nohup yaci-devkit up --enable-yaci-store > "$TEMP_LOG" 2>&1 &
+nohup npx --prefix "$YACI_DEVKIT_DIR" yaci-devkit up --enable-yaci-store > "$TEMP_LOG" 2>&1 &
 YACI_PID=$!
 
 echo "Waiting for devnet to start (PID: $YACI_PID)..."

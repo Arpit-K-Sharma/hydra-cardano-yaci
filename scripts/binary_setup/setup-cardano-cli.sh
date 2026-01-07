@@ -4,11 +4,8 @@
 
 set -e
 
-# Calculate ROOT_DIR (scripts/binary_setup -> scripts -> project root)
-ROOT_DIR="$(dirname $(dirname $(dirname $(realpath $0))))"
-CONFIG_PATH="$ROOT_DIR/scripts/utils/config.sh"
-
-# Source config file
+# Source config-path.sh to set ROOT_DIR and CONFIG_PATH
+source "$(dirname "$0")/../utils/config-path.sh"
 if [ ! -f "$CONFIG_PATH" ]; then
     echo "Config file not found at $CONFIG_PATH"
     exit 1

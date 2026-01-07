@@ -66,85 +66,84 @@ else
     echo "✓ jq already installed"
 fi
 
-# Check for Node.js (required for Yaci DevKit NPM)
+
+# Check for Node.js (required for npm scripts)
 if ! command -v node &> /dev/null; then
-    echo "Node.js not found. Will need to install (required for Yaci DevKit)."
-    NODE_MISSING=true
+    echo "✗ Node.js not found. Please install Node.js (>= 20.8.0) from https://nodejs.org/ and re-run this script."
+    exit 1
 else
     NODE_VERSION=$(node --version | sed 's/v//')
     NODE_MAJOR=$(echo "$NODE_VERSION" | cut -d. -f1)
     if [ "$NODE_MAJOR" -ge 20 ]; then
         echo "✓ Node.js $NODE_VERSION installed (meets requirement >= 20.8.0)"
     else
-        echo "⚠ Node.js $NODE_VERSION installed but version >= 20.8.0 required"
-        NODE_MISSING=true
+        echo "⚠ Node.js $NODE_VERSION installed but version >= 20.8.0 required. Please upgrade Node.js."
+        exit 1
     fi
 fi
 
 # Check for npm (comes with Node.js)
 if ! command -v npm &> /dev/null; then
-    echo "npm not found. Will be installed with Node.js."
+    echo "✗ npm not found. Please install Node.js (which includes npm) from https://nodejs.org/ and re-run this script."
+    exit 1
 else
     echo "✓ npm already installed"
 fi
+
+
 
 # Install packages if any are missing
 if [ ${#REQUIRED_PACKAGES[@]} -eq 0 ]; then
     echo ""
     echo "All prerequisites are already installed!"
-    exit 0
-fi
-
-echo ""
-echo "Installing missing packages: ${REQUIRED_PACKAGES[*]}"
-echo ""
-
-case "$OS" in
-    ubuntu|debian)
-        $SUDO apt update
-        $SUDO apt install -y "${REQUIRED_PACKAGES[@]}"
-        ;;
-    fedora|rhel|centos)
-        $SUDO yum install -y "${REQUIRED_PACKAGES[@]}"
-        ;;
-    arch|manjaro)
-        $SUDO pacman -S --noconfirm "${REQUIRED_PACKAGES[@]}"
-        ;;
-    *)
-        echo "Unsupported OS: $OS"
-        echo "Please install these packages manually: ${REQUIRED_PACKAGES[*]}"
-        exit 1
-        ;;
-esac
-
-echo ""
-echo "=== Prerequisites installed successfully! ==="
-
-# Install Node.js if missing
-if [ "$NODE_MISSING" = true ]; then
+else
     echo ""
-    echo "=== Installing Node.js 20.x ==="
+    echo "Installing missing packages: ${REQUIRED_PACKAGES[*]}"
+    echo ""
     case "$OS" in
         ubuntu|debian)
-            curl -fsSL https://deb.nodesource.com/setup_20.x | $SUDO -E bash -
-            $SUDO apt install -y nodejs
+            $SUDO apt update
+            $SUDO apt install -y "${REQUIRED_PACKAGES[@]}"
             ;;
         fedora|rhel|centos)
-            curl -fsSL https://rpm.nodesource.com/setup_20.x | $SUDO bash -
-            $SUDO yum install -y nodejs
+            $SUDO yum install -y "${REQUIRED_PACKAGES[@]}"
             ;;
         arch|manjaro)
-            $SUDO pacman -S --noconfirm nodejs npm
+            $SUDO pacman -S --noconfirm "${REQUIRED_PACKAGES[@]}"
             ;;
         *)
-            echo "Please install Node.js 20.x manually from https://nodejs.org/"
+            echo "Unsupported OS: $OS"
+            echo "Please install these packages manually: ${REQUIRED_PACKAGES[*]}"
+            exit 1
             ;;
     esac
-    echo "✓ Node.js installed: $(node --version)"
 fi
 
-echo ""
-echo "You can now run the setup scripts:"
-echo "  ./scripts/binary_setup/setup-cardano-cli.sh"
-echo "  ./scripts/binary_setup/setup-hydra-node.sh"
-echo "  ./scripts/devnet/setup-yaci-devkit.sh"
+
+# Final check for node and npm
+NODE_OK=false
+NPM_OK=false
+if command -v node &> /dev/null; then
+    NODE_OK=true
+fi
+if command -v npm &> /dev/null; then
+    NPM_OK=true
+fi
+
+if [ "$NODE_OK" = true ] && [ "$NPM_OK" = true ]; then
+    echo ""
+    echo "=== Prerequisites installed successfully! ==="
+    echo ""
+    echo "You can now run the setup scripts:"
+    echo "  ./scripts/binary_setup/setup-cardano-cli.sh"
+    echo "  ./scripts/binary_setup/setup-hydra-node.sh"
+    echo "  ./scripts/devnet/setup-yaci-devkit.sh"
+else
+    echo ""
+    echo "✗ Error: Node.js and npm are both required."
+    if [ "$NPM_OK" = true ] && [ "$NODE_OK" = false ]; then
+        echo "  npm is installed but node is not. This usually means your PATH is misconfigured or npm was installed separately."
+    fi
+    echo "  Please ensure both node and npm are installed and available in your PATH."
+    exit 1
+fi

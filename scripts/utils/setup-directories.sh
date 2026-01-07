@@ -4,8 +4,15 @@ set -eu
 
 # Directories Setup Script
 
-# Compute project root 
-ROOT_DIR=$(cd "$(dirname "$0")/../.." && pwd)
+echo "-------------------------------------"
+echo "Setting up project directories..."
+echo "-------------------------------------"
+echo ""
+
+echo "Creating directory structure"
+
+# Source config-path.sh to set ROOT_DIR and CONFIG_PATH
+. "$(dirname "$0")/config-path.sh"
 cd "$ROOT_DIR"
 
 echo "-------------------------------------"
@@ -16,7 +23,6 @@ echo ""
 echo "Creating directory structure"
 
 # Participants: try to read from config.sh (Bash array), fallback to defaults
-CONFIG_PATH="$ROOT_DIR/scripts/utils/config.sh"
 PARTICIPANTS="alice bob carol"
 if [ -f "$CONFIG_PATH" ]; then
     LINE=$(grep -E '^PARTICIPANTS=\(' "$CONFIG_PATH" 2>/dev/null || true)

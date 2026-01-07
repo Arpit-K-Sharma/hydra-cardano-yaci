@@ -3,9 +3,8 @@
 # Publish Hydra scripts and write the resulting txid to the .env file
 set -e
 
-ROOT_DIR="$(dirname $(dirname $(realpath $0)))"
-CONFIG_PATH="$ROOT_DIR/scripts/utils/config.sh"
-
+# Source config-path.sh to set ROOT_DIR and CONFIG_PATH
+source "$(dirname "$0")/utils/config-path.sh"
 if [ ! -f "$CONFIG_PATH" ]; then
     echo "Config file not found at $CONFIG_PATH"
     exit 1
