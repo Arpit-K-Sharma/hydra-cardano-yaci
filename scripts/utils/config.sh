@@ -97,7 +97,7 @@ YACI_NODE_PORT="3001"             # Cardano node port
 YACI_SUBMIT_API_PORT="8090"       # Submit API port
 YACI_STORE_PORT="8080"            # Yaci Store (Blockfrost-compatible) port
 YACI_OGMIOS_PORT="1337"           # Ogmios port (WebSocket)
-YACI_VIEWER_PORT="5173"           # Yaci Viewer port
+YACI_VIEWER_PORT="3000"           # Yaci Viewer port
 
 # Yaci DevKit API endpoints (use port variables)
 YACI_TOPUP_API="http://localhost:$YACI_CLUSTER_API_PORT/local-cluster/api/addresses/topup"
