@@ -21,6 +21,9 @@ PAYMENT_SUBDIR="payment"
 # Hydra key subdirectory (under KEYS_DIR) - for future use
 HYDRA_SUBDIR="hydra"
 
+# Log folder for devnet and other logs
+LOGS_DIR="logs"
+
 # -----------------------------------------------------------------------------
 # PARTICIPANTS
 # -----------------------------------------------------------------------------
@@ -88,20 +91,21 @@ YACI_CLUSTER_NAME="default"
 # Format: $YACI_CLI_HOME/local-clusters/<cluster>/node/node.sock
 YACI_NODE_SOCKET_PATH="$YACI_CLI_HOME/local-clusters/$YACI_CLUSTER_NAME/node/node.sock"
 
-# Yaci DevKit API endpoints
-YACI_TOPUP_API="http://localhost:10000/local-cluster/api/addresses/topup"
-YACI_UTXOS_API="http://localhost:10000/local-cluster/api/addresses"
+# Yaci DevKit Port Configuration
+YACI_CLUSTER_API_PORT="10000"    # Admin API port
+YACI_NODE_PORT="3001"             # Cardano node port
+YACI_SUBMIT_API_PORT="8090"       # Submit API port
+YACI_STORE_PORT="8080"            # Yaci Store (Blockfrost-compatible) port
+YACI_OGMIOS_PORT="1337"           # Ogmios port (WebSocket)
+YACI_VIEWER_PORT="5173"           # Yaci Viewer port
+
+# Yaci DevKit API endpoints (use port variables)
+YACI_TOPUP_API="http://localhost:$YACI_CLUSTER_API_PORT/local-cluster/api/addresses/topup"
+YACI_UTXOS_API="http://localhost:$YACI_CLUSTER_API_PORT/local-cluster/api/addresses"
 
 # Yaci Store API (Blockfrost-compatible)
-YACI_STORE_API="http://localhost:8080/api/v1"
+YACI_STORE_API="http://localhost:$YACI_STORE_PORT/api/v1"
 
-# Yaci DevKit ports
-YACI_NODE_PORT=3001
-YACI_STORE_PORT=8080
-YACI_CLUSTER_API_PORT=10000
-YACI_VIEWER_PORT=5173
-YACI_OGMIOS_PORT=1337
-YACI_KUPO_PORT=1442
 
 # =============================================================================
 # END OF CONFIGURATION

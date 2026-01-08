@@ -70,35 +70,66 @@ echo "  - Enable Ogmios for script evaluation"
 echo ""
 
 # Start the devnet in background and capture output
-# Using nohup to run in background, but we need to wait for it to be ready
-TEMP_LOG=$(mktemp)
+# Using nohup to run in background, we'll poll for readiness
+DEVNET_LOG="$ROOT_DIR/$LOGS_DIR/devnet.log"
+
+# Ensure logs directory exists
+mkdir -p "$ROOT_DIR/$LOGS_DIR"
 
 echo "Starting Yaci DevKit..."
-nohup npx --prefix "$YACI_DEVKIT_DIR" yaci-devkit up --enable-yaci-store > "$TEMP_LOG" 2>&1 &
+# Kill any existing yaci-devkit process
+pkill -f "yaci-devkit up" 2>/dev/null || true
+sleep 1
+
+nohup npx --prefix "$YACI_DEVKIT_DIR" yaci-devkit up --enable-yaci-store > "$DEVNET_LOG" 2>&1 &
 YACI_PID=$!
 
-echo "Waiting for devnet to start (PID: $YACI_PID)..."
+echo "Yaci DevKit started with PID: $YACI_PID"
+echo "Log file: $DEVNET_LOG"
+echo ""
 
-# Wait for the devnet to be ready (check API endpoint)
-MAX_WAIT=120
+# Wait for the devnet to be ready by polling the API
+MAX_WAIT=180
 WAITED=0
+DEVNET_READY=false
+
+echo "Waiting for devnet services to be ready (max $MAX_WAIT seconds)..."
+echo "Note: This may take a while as Yaci Store initializes..."
+
 while [ $WAITED -lt $MAX_WAIT ]; do
-    if curl -s "http://localhost:$YACI_CLUSTER_API_PORT/local-cluster/api/admin/devnet" > /dev/null 2>&1; then
-        echo ""
-        echo "✓ Devnet is ready!"
-        break
+    # Check if the cluster API is responding
+    CLUSTER_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:$YACI_CLUSTER_API_PORT/local-cluster/api/admin/devnet" 2>&1)
+    
+    if [ "$CLUSTER_RESPONSE" = "200" ]; then
+        # Check if Yaci Store is responding (any HTTP response means it's up)
+        STORE_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:$YACI_STORE_PORT/" 2>&1)
+        
+        # Accept 200-599 (any real HTTP response code - service is up)
+        if [ "$STORE_RESPONSE" -ge 200 ] && [ "$STORE_RESPONSE" -lt 600 ] 2>/dev/null; then
+            echo ""
+            echo "✓ Devnet and Yaci Store are ready!"
+            DEVNET_READY=true
+            break
+        fi
     fi
+    
     sleep 2
     WAITED=$((WAITED + 2))
-    echo -n "."
+    
+    if [ $((WAITED % 10)) -eq 0 ]; then
+        echo "  Waited $WAITED seconds..."
+    else
+        echo -n "."
+    fi
 done
 
-if [ $WAITED -ge $MAX_WAIT ]; then
-    echo ""
-    echo "Error: Devnet did not start within $MAX_WAIT seconds."
-    echo "Check the log: $TEMP_LOG"
-    exit 1
+echo ""
+if [ "$DEVNET_READY" = false ]; then
+    echo "⚠ Warning: Devnet may not be fully initialized, but proceeding..."
+    echo "Check the log if issues persist:"
+    echo "  tail -f $DEVNET_LOG"
 fi
+
 
 # Get devnet info from API
 DEVNET_INFO=$(curl -s "http://localhost:$YACI_CLUSTER_API_PORT/local-cluster/api/admin/devnet" 2>/dev/null || echo "{}")
@@ -120,7 +151,27 @@ if [ -n "$DEVNET_INFO" ] && [ "$DEVNET_INFO" != "{}" ]; then
     echo "API Endpoints:"
     echo "  Cluster API:    http://localhost:$YACI_CLUSTER_API_PORT"
     echo "  Yaci Store:     http://localhost:$YACI_STORE_PORT/api/v1"
-    echo "  Yaci Viewer:    http://localhost:$YACI_VIEWER_PORT"
+    echo "  Ogmios:         ws://localhost:$YACI_OGMIOS_PORT"
+    echo ""
+    
+    # Start Yaci Viewer if installed locally
+    if [ -d "$YACI_DEVKIT_DIR/node_modules/@bloxbean/yaci-viewer" ]; then
+        # Check if viewer is already running
+        if ! curl -s "http://localhost:$YACI_VIEWER_PORT" > /dev/null 2>&1; then
+            echo "Starting Yaci Viewer..."
+            nohup npx --prefix "$YACI_DEVKIT_DIR" yaci-viewer > /dev/null 2>&1 &
+            sleep 2
+            if curl -s "http://localhost:$YACI_VIEWER_PORT" > /dev/null 2>&1; then
+                echo "✓ Yaci Viewer started at http://localhost:$YACI_VIEWER_PORT"
+            else
+                echo "⚠ Yaci Viewer may take a moment to start at http://localhost:$YACI_VIEWER_PORT"
+            fi
+        else
+            echo "✓ Yaci Viewer already running at http://localhost:$YACI_VIEWER_PORT"
+        fi
+    else
+        echo "Note: Yaci Viewer not installed. Run: npm run setup:devkit"
+    fi
     echo ""
     
     # Export to .env file
@@ -135,15 +186,19 @@ if [ -n "$DEVNET_INFO" ] && [ "$DEVNET_INFO" != "{}" ]; then
     
     echo "✓ Configuration exported to $ENV_FILE"
     echo ""
+    echo "Devnet is running with the following configuration:"
+    echo "  PID: $YACI_PID"
+    echo "  Log: $DEVNET_LOG"
+    echo ""
     echo "Next steps:"
     echo "  1. Fund addresses:   ./scripts/fund-addresses.sh"
     echo "  2. Publish scripts:  ./scripts/publish-hydra-scripts.sh"
+    echo ""
+    echo "To monitor devnet logs:"
+    echo "  tail -f $DEVNET_LOG"
 else
     echo "Warning: Could not retrieve devnet info from API."
     echo "Using default socket path: $YACI_NODE_SOCKET_PATH"
     
     echo "CARDANO_NODE_SOCKET_PATH=$YACI_NODE_SOCKET_PATH" > "$ENV_FILE"
 fi
-
-# Cleanup temp log
-rm -f "$TEMP_LOG"

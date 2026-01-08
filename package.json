@@ -6,6 +6,7 @@
     "scripts": {
         "setup:devkit": "bash ./scripts/devnet/setup-yaci-devkit.sh",
         "start:devnet": "bash ./scripts/devnet/start-devnet.sh",
+        "stop:devnet": "bash ./scripts/devnet/stop-devnet.sh",
         "setup:cardano-cli": "bash ./scripts/binary_setup/setup-cardano-cli.sh",
         "setup:hydra-node": "bash ./scripts/binary_setup/setup-hydra-node.sh",
         "setup:docker:cardano-cli": "bash ./scripts/docker_setup/setup-cardano-cli-docker.sh",
@@ -13,7 +14,10 @@
         "fund-addresses": "bash ./scripts/fund-addresses.sh",
         "generate-keys": "bash ./scripts/generate-keys.sh",
         "publish-hydra-scripts": "bash ./scripts/publish-hydra-scripts.sh",
-        "install:prerequisites": "bash ./scripts/utils/install-prerequisites.sh"
+        "install:prerequisites": "bash ./scripts/utils/install-prerequisites.sh",
+        "setup:directories": "bash ./scripts/utils/setup-directories.sh",
+        "hydra:start": "bash ./scripts/start-hydra-nodes.sh",
+        "hydra:stop": "bash ./scripts/stop-hydra-nodes.sh"
     },
     "keywords": [
         "cardano",

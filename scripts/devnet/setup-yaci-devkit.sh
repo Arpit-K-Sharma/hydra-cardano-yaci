@@ -41,17 +41,29 @@ if ! command -v npm &> /dev/null; then
 fi
 echo "✓ npm $(npm --version) detected"
 
-# Check if yaci-devkit is already installed locally
+# Install yaci-devkit and yaci-viewer locally
 YACI_DEVKIT_DIR="$ROOT_DIR/yaci-devkit"
+mkdir -p "$YACI_DEVKIT_DIR"
+
+# Check if yaci-devkit is already installed
 if [ -d "$YACI_DEVKIT_DIR/node_modules/@bloxbean/yaci-devkit" ]; then
-    echo "\u2713 Yaci DevKit is already installed locally in $YACI_DEVKIT_DIR"
+    echo "✓ Yaci DevKit is already installed locally"
     npx --prefix "$YACI_DEVKIT_DIR" yaci-devkit --version 2>/dev/null || echo "  (version check not available)"
 else
     echo ""
-    echo "Installing Yaci DevKit locally in $YACI_DEVKIT_DIR via NPM..."
-    mkdir -p "$YACI_DEVKIT_DIR"
+    echo "Installing Yaci DevKit locally via NPM..."
     npm install --prefix "$YACI_DEVKIT_DIR" @bloxbean/yaci-devkit
-    echo "\u2713 Yaci DevKit installed locally"
+    echo "✓ Yaci DevKit installed locally"
+fi
+
+# Check if yaci-viewer is already installed
+if [ -d "$YACI_DEVKIT_DIR/node_modules/@bloxbean/yaci-viewer" ]; then
+    echo "✓ Yaci Viewer is already installed locally"
+else
+    echo ""
+    echo "Installing Yaci Viewer locally via NPM..."
+    npm install --prefix "$YACI_DEVKIT_DIR" @bloxbean/yaci-viewer
+    echo "✓ Yaci Viewer installed locally"
 fi
 
 # Create yaci-cli home directory if it doesn't exist
@@ -67,12 +79,16 @@ echo "============================================"
 echo "Yaci DevKit Setup Complete!"
 echo "============================================"
 echo ""
-echo "Next steps:"
-echo "  1. Start the devnet:    ./scripts/devnet/start-devnet.sh"
-echo "  2. Fund addresses:      ./scripts/fund-addresses.sh"
-echo "  3. Publish scripts:     ./scripts/publish-hydra-scripts.sh"
+echo "Installed components:"
+echo "  ✓ Yaci DevKit (devnet management)"
+echo "  ✓ Yaci Viewer (blockchain explorer)"
 echo ""
-echo "Useful commands:"
-echo "  yaci-devkit up --enable-yaci-store    # Start devnet with indexer"
-echo "  yaci-devkit up --interactive          # Start with CLI prompt"
+echo "Next steps:"
+echo "  1. Start the devnet:    npm run start:devnet"
+echo "  2. Fund addresses:      npm run fund-addresses"
+echo "  3. Publish scripts:     npm run publish-hydra-scripts"
+echo ""
+echo "The start:devnet command will automatically:"
+echo "  - Start the Cardano devnet with Yaci Store"
+echo "  - Launch Yaci Viewer at http://localhost:5173"
 echo ""

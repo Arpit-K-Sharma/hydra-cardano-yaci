@@ -17,32 +17,32 @@ if [ -f "$ROOT_DIR/.env" ]; then
     source "$ROOT_DIR/.env"
 fi
 
-# Default Yaci API URL if not set
-YACI_API_URL="${YACI_API_URL:-http://localhost:8080/api/v1}"
+# Yaci API URLs from config or defaults
+YACI_CLUSTER_API_URL="${YACI_CLUSTER_API:-http://localhost:$YACI_CLUSTER_API_PORT}"
+YACI_STORE_API_URL="${YACI_STORE_API:-http://localhost:$YACI_STORE_PORT/api/v1}"
 
 cd "$ROOT_DIR"
 
 echo "--------------------------------------------"
-echo "Funding Addresses Using Yaci CLI"
+echo "Funding Addresses Using Yaci DevKit API"
 echo "--------------------------------------------"
 echo ""
 
-# Find Yaci CLI container (by name first, then fallback to grep)
-CONTAINER=$(docker ps --filter "name=yaci-cli" --format "{{.Names}}" | head -1)
-
-if [ -z "$CONTAINER" ]; then
-    CONTAINER=$(docker ps --format '{{.Names}} {{.Image}}' | awk '/yaci-cli/ {print $1; exit}')
-fi
-
-if [ -z "$CONTAINER" ]; then
-    echo "Error: Yaci DevKit not running. Start with: devkit start"
+# Check if Yaci DevKit Cluster API is reachable (port 10000)
+if ! curl -s "$YACI_CLUSTER_API_URL/local-cluster/api/admin/devnet" > /dev/null 2>&1; then
+    echo "Error: Yaci DevKit not running."
+    echo "  Cluster API not reachable at: $YACI_CLUSTER_API_URL"
+    echo ""
+    echo "Start the devnet with: npm run start:devnet"
     exit 1
 fi
 
-echo "Container: $CONTAINER"
+echo "✓ Yaci DevKit is running"
+echo "  Cluster API: $YACI_CLUSTER_API_URL"
+echo "  Store API:   $YACI_STORE_API_URL"
 echo ""
 
-# Use API endpoints from config.sh
+# Use API endpoints from config.sh (Cluster API for topup, can use either for UTXOs)
 TOPUP_API="$YACI_TOPUP_API"
 UTXOS_API="$YACI_UTXOS_API"
 

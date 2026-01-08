@@ -31,10 +31,11 @@ fi
 FIRST_PARTICIPANT="${PARTICIPANTS[0]}"
 SIGNING_KEY_PATH="$ROOT_DIR/$KEYS_DIR/$PAYMENT_SUBDIR/$FIRST_PARTICIPANT/payment.skey"
 
+
 # Check hydra-node binary
 if [ ! -x "$HYDRA_NODE_PATH" ]; then
     echo "hydra-node binary not found at $HYDRA_NODE_PATH"
-    echo "Please run: ./scripts/binary_setup/setup-hydra-node.sh"
+    echo "Please run: npm run setup:hydra-node"
     exit 1
 fi
 
@@ -43,16 +44,16 @@ if [ ! -S "$NODE_SOCKET_PATH" ]; then
     echo "node.socket not found at $NODE_SOCKET_PATH"
     echo ""
     echo "Please ensure the devnet is running:"
-    echo "  ./scripts/devnet/start-devnet.sh"
+    echo "  npm run start:devnet"
     echo ""
-    echo "Or check if CARDANO_NODE_SOCKET_PATH is set correctly in .env"
+    echo "Or check if CARDANO_NODE_SOCKET_PATH is set correctly in .env (auto-set by devnet startup)"
     exit 1
 fi
 
 # Check signing key
 if [ ! -f "$SIGNING_KEY_PATH" ]; then
     echo "Signing key not found at $SIGNING_KEY_PATH"
-    echo "Please run: ./scripts/generate-keys.sh"
+    echo "Please run: npm run generate-keys"
     exit 1
 fi
 
