@@ -3,7 +3,7 @@
 set -e
 
 # Source config for PARTICIPANTS and HYDRA_VERSION
-source "$(dirname "$0")/utils/config-path.sh"
+source "$(dirname "$0")/../utils/config-path.sh"
 source "$CONFIG_PATH"
 
 PROJECT_ROOT="$ROOT_DIR"

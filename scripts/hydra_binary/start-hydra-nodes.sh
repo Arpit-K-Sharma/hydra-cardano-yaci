@@ -1,14 +1,9 @@
 #!/bin/bash
-
 # Robust script to start all Hydra nodes for all participants using npm/yaci workflow
 set -e
 
 # Source config and env
-source "$(dirname "$0")/utils/config-path.sh"
-if [ ! -f "$CONFIG_PATH" ]; then
-    echo "Config file not found at $CONFIG_PATH"
-    exit 1
-fi
+source "$(dirname "$0")/../utils/config-path.sh"
 source "$CONFIG_PATH"
 
 ENV_FILE="$ROOT_DIR/.env"
@@ -18,7 +13,6 @@ if [ ! -f "$ENV_FILE" ]; then
 fi
 source "$ENV_FILE"
 
-# Check hydra-node binary
 HYDRA_NODE_PATH="$ROOT_DIR/$HYDRA_NODE"
 if [ ! -x "$HYDRA_NODE_PATH" ]; then
     echo "hydra-node binary not found at $HYDRA_NODE_PATH"
@@ -26,15 +20,12 @@ if [ ! -x "$HYDRA_NODE_PATH" ]; then
     exit 1
 fi
 
-# Protocol parameters
 PROTOCOL_PARAMS="$ROOT_DIR/config/hydra/protocol-parameters.json"
-mkdir -p "$ROOT_DIR/config/hydra"
 if [ ! -f "$PROTOCOL_PARAMS" ]; then
     echo "Error: protocol-parameters.json not found at $PROTOCOL_PARAMS. Please provide a valid file in config/hydra."
     exit 1
 fi
 
-# Helper: Start a hydra node for a participant
 start_hydra_node() {
     local NAME=$1
     local API_PORT=$2
@@ -48,14 +39,10 @@ start_hydra_node() {
     local PID_FILE="$NODE_DIR/hydra-node.pid"
     mkdir -p "$NODE_DIR/logs"
 
-    # Key paths
     HYDRA_KEY_DIR="$ROOT_DIR/$KEYS_DIR/$HYDRA_SUBDIR/$NAME"
     HYDRA_SK="$HYDRA_KEY_DIR/hydra.sk"
-    HYDRA_VK="$HYDRA_KEY_DIR/hydra.vk"
     CARDANO_SK="$ROOT_DIR/$KEYS_DIR/$PAYMENT_SUBDIR/$NAME/payment.skey"
-    CARDANO_VK="$ROOT_DIR/$KEYS_DIR/$PAYMENT_SUBDIR/$NAME/payment.vkey"
 
-    # If already running
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
         if ps -p $PID > /dev/null 2>&1; then
@@ -64,7 +51,6 @@ start_hydra_node() {
         fi
     fi
 
-    # Build peer list using dynamic port assignment (exclude self)
     PEERS=""
     for idx2 in "${!PARTICIPANTS[@]}"; do
         OTHER="${PARTICIPANTS[$idx2]}"
@@ -74,7 +60,6 @@ start_hydra_node() {
         fi
     done
 
-    # Build verification keys for other participants
     ALL_KEYS=""
     for other in "${PARTICIPANTS[@]}"; do
         if [ "$other" != "$NAME" ]; then
@@ -85,7 +70,6 @@ start_hydra_node() {
         fi
     done
 
-    # Start hydra-node
     nohup "$HYDRA_NODE_PATH" \
         --node-id "$NAME" \
         --api-host 0.0.0.0 \
@@ -97,8 +81,8 @@ start_hydra_node() {
         --cardano-signing-key "$CARDANO_SK" \
         $ALL_KEYS \
         --ledger-protocol-parameters "$PROTOCOL_PARAMS" \
-        --testnet-magic "$YACI_PROTOCOL_MAGIC" \
-        --node-socket "$CARDANO_NODE_SOCKET_PATH" \
+        --testnet-magic "$TESTNET_MAGIC" \
+        --node-socket "$YACI_NODE_SOCK_LOCAL_PATH" \
         --hydra-scripts-tx-id "$HYDRA_SCRIPTS_TX_ID" \
         --persistence-dir "$NODE_DIR/persistence" \
         $PEERS \
@@ -113,8 +97,6 @@ start_hydra_node() {
     echo ""
 }
 
-
-# Dynamic port assignment
 API_BASE=4000
 PEER_BASE=5000
 MON_BASE=6000
@@ -133,6 +115,15 @@ for idx in "${!PARTICIPANTS[@]}"; do
     else
         sleep 5
     fi
+    
+    # Optionally, check if node started
+    if [ -f "$ROOT_DIR/hydra-nodes/$NAME/hydra-node.pid" ]; then
+        PID=$(cat "$ROOT_DIR/hydra-nodes/$NAME/hydra-node.pid")
+        if ! ps -p $PID > /dev/null 2>&1; then
+            echo "Hydra node for $NAME failed to start. Check logs: $ROOT_DIR/hydra-nodes/$NAME/logs/hydra-node.log"
+        fi
+    fi
+
 done
 
 echo "waiting for Hydra nodes to start..."
@@ -145,7 +136,7 @@ ALL_RUNNING=true
 
 for idx in "${!PARTICIPANTS[@]}"; do
     NAME="${PARTICIPANTS[$idx]}"
-    API_PORT=$((4000 + idx))
+    API_PORT=$((API_BASE + idx))
     if curl -s http://localhost:$API_PORT > /dev/null 2>&1; then
         echo "   $NAME is responding on port $API_PORT"
     else
@@ -154,6 +145,7 @@ for idx in "${!PARTICIPANTS[@]}"; do
         cat "$ROOT_DIR/hydra-nodes/$NAME/logs/hydra-node.log"
         ALL_RUNNING=false
     fi
+
 done
 
 echo ""
@@ -165,7 +157,7 @@ if [ "$ALL_RUNNING" = true ]; then
     echo "API Endpoints:"
     for idx in "${!PARTICIPANTS[@]}"; do
         NAME="${PARTICIPANTS[$idx]}"
-        API_PORT=$((4000 + idx))
+        API_PORT=$((API_BASE + idx))
         echo "  $NAME:  http://localhost:$API_PORT"
     done
     echo ""

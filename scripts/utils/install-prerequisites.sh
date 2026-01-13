@@ -4,146 +4,340 @@
 
 set -e
 
-echo "=== Installing Prerequisites ==="
+echo "============================================"
+echo "Checking Prerequisites"
+echo "============================================"
 echo ""
 
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Error counter
+ERRORS=0
+
 # Detect OS
-if [ -f /etc/os-release ]; then
-    . /etc/os-release
-    OS=$ID
-else
-    echo "Cannot detect OS. Please install dependencies manually."
-    exit 1
+detect_os() {
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        OS=$ID
+        OS_VERSION=$VERSION_ID
+    elif [ -f /etc/redhat-release ]; then
+        OS="rhel"
+    elif [ "$(uname)" = "Darwin" ]; then
+        OS="macos"
+    else
+        OS="unknown"
+    fi
+    echo "$OS"
+}
+
+OS=$(detect_os)
+echo -e "${BLUE}Detected OS: $OS${NC}"
+echo ""
+
+# Determine if sudo is needed
+SUDO=""
+if [ "$EUID" -ne 0 ] && [ "$OS" != "macos" ]; then
+    if command -v sudo &> /dev/null; then
+        SUDO="sudo"
+    fi
 fi
 
-# Check if running as root or with sudo
-if [ "$EUID" -ne 0 ]; then
-    SUDO="sudo"
-else
-    SUDO=""
-fi
+# Function to check if a command exists
+check_command() {
+    local cmd=$1
+    local version_flag=$2
+    local install_name=${3:-$1}
+    
+    if command -v "$cmd" &> /dev/null; then
+        echo -e "${GREEN}[✔] $cmd is installed${NC}"
+        if [ -n "$version_flag" ]; then
+            VERSION=$($cmd $version_flag 2>&1 | head -n 1)
+            echo -e "${YELLOW}    Version: $VERSION${NC}"
+        fi
+        return 0
+    else
+        echo -e "${RED}[✘] $cmd is not installed${NC}"
+        return 1
+    fi
+}
 
-# List of required packages
-REQUIRED_PACKAGES=()
+# Function to install package based on OS
+install_package() {
+    local package=$1
+    
+    echo -e "${YELLOW}Installing $package...${NC}"
+    
+    case "$OS" in
+        ubuntu|debian)
+            $SUDO apt-get update -qq
+            $SUDO apt-get install -y "$package"
+            ;;
+        fedora|rhel|centos)
+            $SUDO yum install -y "$package"
+            ;;
+        arch|manjaro)
+            $SUDO pacman -S --noconfirm "$package"
+            ;;
+        macos)
+            if command -v brew &> /dev/null; then
+                brew install "$package"
+            else
+                echo -e "${RED}Homebrew not found. Please install Homebrew first: https://brew.sh/${NC}"
+                return 1
+            fi
+            ;;
+        *)
+            echo -e "${RED}Unsupported OS: $OS${NC}"
+            echo "Please install $package manually"
+            return 1
+            ;;
+    esac
+    
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}[✔] $package installed successfully${NC}"
+        return 0
+    else
+        echo -e "${RED}[✘] Failed to install $package${NC}"
+        return 1
+    fi
+}
 
-# Check for curl
-if ! command -v curl &> /dev/null; then
-    echo "curl not found. Will install."
-    REQUIRED_PACKAGES+=("curl")
-else
-    echo "✓ curl already installed"
-fi
+echo "-------------------------------------"
+echo "Checking Required Tools"
+echo "-------------------------------------"
+echo ""
 
-# Check for wget
-if ! command -v wget &> /dev/null; then
-    echo "wget not found. Will install."
-    REQUIRED_PACKAGES+=("wget")
-else
-    echo "✓ wget already installed"
-fi
-
-# Check for unzip
-if ! command -v unzip &> /dev/null; then
-    echo "unzip not found. Will install."
-    REQUIRED_PACKAGES+=("unzip")
-else
-    echo "✓ unzip already installed"
-fi
-
-# Check for tar
-if ! command -v tar &> /dev/null; then
-    echo "tar not found. Will install."
-    REQUIRED_PACKAGES+=("tar")
-else
-    echo "✓ tar already installed"
-fi
-
-# Check for jq (useful for JSON parsing)
-if ! command -v jq &> /dev/null; then
-    echo "jq not found. Will install (optional but recommended)."
-    REQUIRED_PACKAGES+=("jq")
-else
-    echo "✓ jq already installed"
-fi
-
-
-# Check for Node.js (required for npm scripts)
+# Check Node.js (required, cannot be auto-installed reliably)
+echo "Checking for Node.js..."
 if ! command -v node &> /dev/null; then
-    echo "✗ Node.js not found. Please install Node.js (>= 20.8.0) from https://nodejs.org/ and re-run this script."
-    exit 1
+    echo -e "${RED}[✘] Node.js not found${NC}"
+    echo ""
+    echo "Node.js >= 20.8.0 is required."
+    echo "Please install from: https://nodejs.org/"
+    echo ""
+    if [ "$OS" = "macos" ]; then
+        echo "For macOS, you can use Homebrew:"
+        echo "  brew install node"
+    elif [ "$OS" = "ubuntu" ] || [ "$OS" = "debian" ]; then
+        echo "For Ubuntu/Debian, you can use:"
+        echo "  curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -"
+        echo "  sudo apt-get install -y nodejs"
+    fi
+    echo ""
+    ERRORS=$((ERRORS + 1))
 else
     NODE_VERSION=$(node --version | sed 's/v//')
     NODE_MAJOR=$(echo "$NODE_VERSION" | cut -d. -f1)
     if [ "$NODE_MAJOR" -ge 20 ]; then
-        echo "✓ Node.js $NODE_VERSION installed (meets requirement >= 20.8.0)"
+        echo -e "${GREEN}[✔] Node.js $NODE_VERSION installed (>= 20.8.0 required)${NC}"
     else
-        echo "⚠ Node.js $NODE_VERSION installed but version >= 20.8.0 required. Please upgrade Node.js."
-        exit 1
+        echo -e "${RED}[✘] Node.js $NODE_VERSION found but >= 20.8.0 required${NC}"
+        echo "Please upgrade Node.js from: https://nodejs.org/"
+        ERRORS=$((ERRORS + 1))
     fi
 fi
+echo ""
 
-# Check for npm (comes with Node.js)
-if ! command -v npm &> /dev/null; then
-    echo "✗ npm not found. Please install Node.js (which includes npm) from https://nodejs.org/ and re-run this script."
-    exit 1
-else
-    echo "✓ npm already installed"
+# Check npm (comes with Node.js)
+echo "Checking for npm..."
+if ! check_command "npm" "--version"; then
+    echo -e "${RED}npm not found (should come with Node.js)${NC}"
+    ERRORS=$((ERRORS + 1))
 fi
+echo ""
 
+# Array to collect packages that need installation
+REQUIRED_PACKAGES=()
 
+# Check curl
+echo "Checking for curl..."
+if ! check_command "curl" "--version"; then
+    REQUIRED_PACKAGES+=("curl")
+fi
+echo ""
 
-# Install packages if any are missing
+# Check wget
+echo "Checking for wget..."
+if ! check_command "wget" "--version"; then
+    REQUIRED_PACKAGES+=("wget")
+fi
+echo ""
+
+# Check unzip
+echo "Checking for unzip..."
+if ! check_command "unzip" "-v"; then
+    REQUIRED_PACKAGES+=("unzip")
+fi
+echo ""
+
+# Check tar
+echo "Checking for tar..."
+if ! check_command "tar" "--version"; then
+    REQUIRED_PACKAGES+=("tar")
+fi
+echo ""
+
+# Check jq (JSON parser)
+echo "Checking for jq..."
+if ! check_command "jq" "--version"; then
+    REQUIRED_PACKAGES+=("jq")
+fi
+echo ""
+
+# Check Docker (optional but recommended)
+echo "Checking for Docker..."
+if ! check_command "docker" "--version"; then
+    echo -e "${YELLOW}[!] Docker not found (optional for alternative devnet setup)${NC}"
+    echo "    If you want to use Docker, install from: https://docs.docker.com/get-docker/"
+else
+    # Check if Docker daemon is running
+    if ! docker info &> /dev/null; then
+        echo -e "${YELLOW}[!] Docker is installed but not running${NC}"
+        echo "    Start Docker to use it"
+    fi
+fi
+echo ""
+
+# Check socat (optional, useful for socket bridging)
+echo "Checking for socat..."
+if ! check_command "socat" "-V"; then
+    echo -e "${YELLOW}[!] socat not found (optional, useful for socket bridging)${NC}"
+    read -p "Install socat? (y/n) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        REQUIRED_PACKAGES+=("socat")
+    fi
+fi
+echo ""
+
+# Install missing packages
 if [ ${#REQUIRED_PACKAGES[@]} -eq 0 ]; then
-    echo ""
-    echo "All prerequisites are already installed!"
+    echo "-------------------------------------"
+    echo -e "${GREEN}All required packages are installed!${NC}"
+    echo "-------------------------------------"
 else
+    echo "-------------------------------------"
+    echo "Installing Missing Packages"
+    echo "-------------------------------------"
     echo ""
-    echo "Installing missing packages: ${REQUIRED_PACKAGES[*]}"
+    echo "Packages to install: ${REQUIRED_PACKAGES[*]}"
     echo ""
-    case "$OS" in
-        ubuntu|debian)
-            $SUDO apt update
-            $SUDO apt install -y "${REQUIRED_PACKAGES[@]}"
-            ;;
-        fedora|rhel|centos)
-            $SUDO yum install -y "${REQUIRED_PACKAGES[@]}"
-            ;;
-        arch|manjaro)
-            $SUDO pacman -S --noconfirm "${REQUIRED_PACKAGES[@]}"
-            ;;
-        *)
-            echo "Unsupported OS: $OS"
-            echo "Please install these packages manually: ${REQUIRED_PACKAGES[*]}"
-            exit 1
-            ;;
-    esac
+    
+    for package in "${REQUIRED_PACKAGES[@]}"; do
+        if ! install_package "$package"; then
+            ERRORS=$((ERRORS + 1))
+        fi
+        echo ""
+    done
 fi
 
+# Final summary
+echo ""
+echo "============================================"
+echo "Prerequisites Check Summary"
+echo "============================================"
+echo ""
 
-# Final check for node and npm
-NODE_OK=false
-NPM_OK=false
-if command -v node &> /dev/null; then
-    NODE_OK=true
-fi
-if command -v npm &> /dev/null; then
-    NPM_OK=true
-fi
-
-if [ "$NODE_OK" = true ] && [ "$NPM_OK" = true ]; then
+if [ $ERRORS -eq 0 ]; then
+    echo -e "${GREEN}╔════════════════════════════════════════╗${NC}"
+    echo -e "${GREEN}║  ✔ All Prerequisites Satisfied!       ║${NC}"
+    echo -e "${GREEN}╚════════════════════════════════════════╝${NC}"
     echo ""
-    echo "=== Prerequisites installed successfully! ==="
-    echo ""
-    echo "You can now run the setup scripts:"
-    echo "  ./scripts/binary_setup/setup-cardano-cli.sh"
-    echo "  ./scripts/binary_setup/setup-hydra-node.sh"
-    echo "  ./scripts/devnet/setup-yaci-devkit.sh"
-else
-    echo ""
-    echo "✗ Error: Node.js and npm are both required."
-    if [ "$NPM_OK" = true ] && [ "$NODE_OK" = false ]; then
-        echo "  npm is installed but node is not. This usually means your PATH is misconfigured or npm was installed separately."
+    
+    echo -e "${BLUE}📦 Installed Versions:${NC}"
+    echo "┌────────────────────────────────────────┐"
+    if command -v node &> /dev/null; then
+        printf "│ %-15s %-22s │\n" "Node.js:" "$(node --version)"
     fi
-    echo "  Please ensure both node and npm are installed and available in your PATH."
+    if command -v npm &> /dev/null; then
+        printf "│ %-15s %-22s │\n" "npm:" "$(npm --version)"
+    fi
+    if command -v curl &> /dev/null; then
+        CURL_VER=$(curl --version 2>&1 | head -n 1 | awk '{print $2}')
+        printf "│ %-15s %-22s │\n" "curl:" "$CURL_VER"
+    fi
+    if command -v wget &> /dev/null; then
+        WGET_VER=$(wget --version 2>&1 | head -n 1 | awk '{print $3}')
+        printf "│ %-15s %-22s │\n" "wget:" "$WGET_VER"
+    fi
+    if command -v jq &> /dev/null; then
+        printf "│ %-15s %-22s │\n" "jq:" "$(jq --version 2>&1)"
+    fi
+    if command -v unzip &> /dev/null; then
+        UNZIP_VER=$(unzip -v 2>&1 | head -n 1 | awk '{print $2}')
+        printf "│ %-15s %-22s │\n" "unzip:" "$UNZIP_VER"
+    fi
+    if command -v tar &> /dev/null; then
+        TAR_VER=$(tar --version 2>&1 | head -n 1 | awk '{print $NF}')
+        printf "│ %-15s %-22s │\n" "tar:" "$TAR_VER"
+    fi
+    if command -v docker &> /dev/null; then
+        DOCKER_VER=$(docker --version 2>&1 | awk '{print $3}' | tr -d ',')
+        printf "│ %-15s %-22s │\n" "Docker:" "$DOCKER_VER"
+    fi
+    if command -v socat &> /dev/null; then
+        SOCAT_VER=$(socat -V 2>&1 | head -n 1 | awk '{print $2}')
+        printf "│ %-15s %-22s │\n" "socat:" "$SOCAT_VER"
+    fi
+    echo "└────────────────────────────────────────┘"
+    echo ""
+    
+    echo -e "${BLUE}🚀 Next Steps:${NC}"
+    echo "1️⃣  Install Yaci DevKit"
+    echo "-------> npm run setup:devkit "
+    echo ""   
+    echo "2️⃣  Start the Devnet                 "
+    echo "-------> npm run start:devnet"
+    echo ""
+    echo "3️⃣  Bridge node.sock with socat"
+    echo "-------> npm run bridge:node-sock"
+    echo ""
+    echo -e "${GREEN}✨ You're all set! Happy coding! ✨${NC}"
+    echo ""
+    exit 0
+else
+    echo -e "${RED}╔════════════════════════════════════════╗${NC}"
+    echo -e "${RED}║  ✗ $ERRORS Error(s) Found                   ║${NC}"
+    echo -e "${RED}╚════════════════════════════════════════╝${NC}"
+    echo ""
+    
+    echo -e "${YELLOW}⚠️  Issues Detected:${NC}"
+    echo ""
+    
+    # Show what's missing
+    if ! command -v node &> /dev/null || [ "$NODE_MAJOR" -lt 20 ]; then
+        echo -e "${RED}  ✗ Node.js >= 20.8.0 is required${NC}"
+        echo "    Install from: https://nodejs.org/"
+        echo ""
+    fi
+    
+    if ! command -v npm &> /dev/null; then
+        echo -e "${RED}  ✗ npm is required (comes with Node.js)${NC}"
+        echo ""
+    fi
+    
+    echo -e "${YELLOW}📋 Recommended Actions:${NC}"
+    echo "┌────────────────────────────────────────┐"
+    echo "│  1. Install Node.js >= 20.8.0         │"
+    if [ "$OS" = "ubuntu" ] || [ "$OS" = "debian" ]; then
+        echo "│     Ubuntu/Debian:                     │"
+        echo "│     curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -"
+        echo "│     sudo apt-get install -y nodejs    │"
+    elif [ "$OS" = "macos" ]; then
+        echo "│     macOS (via Homebrew):              │"
+        echo "│     brew install node                  │"
+    fi
+    echo "│                                        │"
+    echo "│  2. Re-run this script                 │"
+    echo "│     npm run setup:prerequisites        │"
+    echo "└────────────────────────────────────────┘"
+    echo ""
+    echo -e "${RED}Please resolve the errors above and try again.${NC}"
+    echo ""
     exit 1
 fi

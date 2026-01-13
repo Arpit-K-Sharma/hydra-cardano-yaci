@@ -1,16 +1,10 @@
 #!/bin/bash
 
-# Script to stop all running Hydra nodes for all participants
+# Robust script to stop all running Hydra nodes for all participants
 set -e
 
-source "$(dirname "$0")/utils/config-path.sh"
-if [ ! -f "$CONFIG_PATH" ]; then
-    echo "Config file not found at $CONFIG_PATH"
-    exit 1
-fi
+source "$(dirname "$0")/../utils/config-path.sh"
 source "$CONFIG_PATH"
-
-ROOT_DIR=$(cd "$(dirname "$0")/.." && pwd)
 
 for NAME in "${PARTICIPANTS[@]}"; do
     NODE_DIR="$ROOT_DIR/hydra-nodes/$NAME"
@@ -20,7 +14,7 @@ for NAME in "${PARTICIPANTS[@]}"; do
         if ps -p $PID > /dev/null 2>&1; then
             echo "Stopping Hydra node for $NAME (PID: $PID)"
             kill $PID
-            sleep 1
+            sleep 2
             if ps -p $PID > /dev/null 2>&1; then
                 echo "  PID $PID did not terminate, sending SIGKILL..."
                 kill -9 $PID

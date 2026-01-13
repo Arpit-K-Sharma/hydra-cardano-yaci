@@ -74,22 +74,25 @@ HYDRA_NODE="${BIN_DIR}/${HYDRA_NODE_BINARY}"
 # Hydra download URL (ZIP format for x86_64 Linux)
 HYDRA_DOWNLOAD_URL="https://github.com/cardano-scaling/hydra/releases/download/${HYDRA_VERSION}/hydra-x86_linux-${HYDRA_VERSION}.zip"
 
-# -----------------------------------------------------------------------------
-# YACI DEVKIT CONFIGURATION (NPM-based)
-# -----------------------------------------------------------------------------
+# =============================================================================
+# YACI DOCKER CONFIGURATION 
+# =============================================================================
 
-# Yaci DevKit NPM package
-YACI_DEVKIT_NPM_PACKAGE="@bloxbean/yaci-devkit"
+# Name of the Yaci CLI Docker container
+YACI_CONTAINER_NAME="node1-yaci-cli-1"
 
-# Yaci CLI home directory (where clusters and node data are stored)
-YACI_CLI_HOME="$HOME/.yaci-cli"
+# Directory to store secrets (node.sock)
+source "$(dirname "$BASH_SOURCE")/config-path.sh"
+YACI_TEMP_SECRET_DIR="$ROOT_DIR/yaci-socket"
 
-# Default cluster name
-YACI_CLUSTER_NAME="default"
+# Path to node.sock inside the container
+YACI_NODE_SOCK_CONTAINER_PATH="/clusters/nodes/default/node/node.sock"
 
-# Node socket path (auto-discovered after devnet start)
-# Format: $YACI_CLI_HOME/local-clusters/<cluster>/node/node.sock
-YACI_NODE_SOCKET_PATH="$YACI_CLI_HOME/local-clusters/$YACI_CLUSTER_NAME/node/node.sock"
+# Path to node.sock on the local machine
+YACI_NODE_SOCK_LOCAL_PATH="$YACI_TEMP_SECRET_DIR/node.socket"
+
+# .env file location
+YACI_ENV_FILE=".env"
 
 # Yaci DevKit Port Configuration
 YACI_CLUSTER_API_PORT="10000"    # Admin API port
@@ -97,7 +100,7 @@ YACI_NODE_PORT="3001"             # Cardano node port
 YACI_SUBMIT_API_PORT="8090"       # Submit API port
 YACI_STORE_PORT="8080"            # Yaci Store (Blockfrost-compatible) port
 YACI_OGMIOS_PORT="1337"           # Ogmios port (WebSocket)
-YACI_VIEWER_PORT="3000"           # Yaci Viewer port
+YACI_VIEWER_PORT="5173"           # Yaci Viewer port
 
 # Yaci DevKit API endpoints (use port variables)
 YACI_TOPUP_API="http://localhost:$YACI_CLUSTER_API_PORT/local-cluster/api/addresses/topup"

@@ -4,20 +4,22 @@
     "description": "Automation and tooling for Cardano Hydra/Yaci devnet workflows.",
     "main": "index.js",
     "scripts": {
-        "setup:devkit": "bash ./scripts/devnet/setup-yaci-devkit.sh",
+        "setup:devkit": "bash ./scripts/devnet/install-yaci-devkit.sh",
         "start:devnet": "bash ./scripts/devnet/start-devnet.sh",
         "stop:devnet": "bash ./scripts/devnet/stop-devnet.sh",
+        "bridge:node-sock": "bash ./scripts/devnet/bridge-node-sock-with-socat.sh",
+        "stop:bridge": "bash ./scripts/devnet/stop-bridge.sh",
         "setup:cardano-cli": "bash ./scripts/binary_setup/setup-cardano-cli.sh",
         "setup:hydra-node": "bash ./scripts/binary_setup/setup-hydra-node.sh",
         "setup:docker:cardano-cli": "bash ./scripts/docker_setup/setup-cardano-cli-docker.sh",
-        "setup:docker:hydra-node": "bash ./scripts/docker_setup/setup-hydra-node-docker.sh",
-        "fund-addresses": "bash ./scripts/fund-addresses.sh",
+        "setup:docker:hydra-": "bash ./scripts/docker_setup/setup-hydra-node-docker.sh",
         "generate-keys": "bash ./scripts/generate-keys.sh",
-        "publish-hydra-scripts": "bash ./scripts/publish-hydra-scripts.sh",
+        "publish-scripts": "bash ./scripts/publish-hydra-scripts.sh",
         "install:prerequisites": "bash ./scripts/utils/install-prerequisites.sh",
         "setup:directories": "bash ./scripts/utils/setup-directories.sh",
-        "hydra:start": "bash ./scripts/start-hydra-nodes.sh",
-        "hydra:stop": "bash ./scripts/stop-hydra-nodes.sh"
+        "hydra:start": "bash ./scripts/hydra_binary/start-hydra-nodes.sh",
+        "hydra:stop": "bash ./scripts/hydra_binary/stop-hydra-nodes.sh",
+        "tui:start": "bash ./scripts/hydra_binary/start-hydra-tui.sh"
     },
     "keywords": [
         "cardano",
