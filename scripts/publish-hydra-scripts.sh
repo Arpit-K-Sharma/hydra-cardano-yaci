@@ -77,38 +77,7 @@ if [ ! -f "$SIGNING_KEY_PATH" ]; then
 fi
 echo "✓ Signing key found"
 
-# Verify the address has funds
-echo ""
-echo "Checking if address has funds..."
-PAYMENT_ADDR_FILE="$ROOT_DIR/$KEYS_DIR/$PAYMENT_SUBDIR/$FIRST_PARTICIPANT/payment.addr"
-if [ -f "$PAYMENT_ADDR_FILE" ]; then
-    PAYMENT_ADDR=$(cat "$PAYMENT_ADDR_FILE")
-    echo "  Address: $PAYMENT_ADDR"
-    
-    # Try to query UTxOs (will fail if not funded)
-    if command -v cardano-cli &> /dev/null; then
-        echo "  Querying UTxOs..."
-        if cardano-cli query utxo \
-            --address "$PAYMENT_ADDR" \
-            --socket-path "$NODE_SOCKET_PATH" \
-            --testnet-magic "$TESTNET_MAGIC" 2>/dev/null | grep -q "lovelace"; then
-            echo "✓ Address has funds"
-        else
-            echo "✗ Address has no funds"
-            echo ""
-            echo "Please fund the address first:"
-            echo "  Address: $PAYMENT_ADDR"
-            echo ""
-            echo "In Yaci DevKit, run:"
-            echo "  devnet:default> topup $PAYMENT_ADDR 1000"
-            exit 1
-        fi
-    else
-        echo "  (cardano-cli not found, skipping balance check)"
-    fi
-else
-    echo "  (payment.addr file not found, skipping balance check)"
-fi
+
 
 echo ""
 echo "============================================"

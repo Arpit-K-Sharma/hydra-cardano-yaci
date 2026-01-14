@@ -114,11 +114,11 @@ echo $SOCAT_PID > "${LOCAL_FOLDER}/socat.pid"
 # Print success message
 cat <<EOF
 
-${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}
-${GREEN}✓ Node socket bridge is running successfully${NC}
-${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✓ Node socket bridge is running successfully${NC}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-${YELLOW}Configuration:${NC}
+Configuration:
 
   Container:        $YACI_CONTAINER_NAME
   Docker Path:      $DOCKER_SOCKET_PATH
@@ -127,11 +127,11 @@ ${YELLOW}Configuration:${NC}
   TCP Target:       localhost:${SOCAT_PORT}
   Socat PID:        $SOCAT_PID
 
-${YELLOW}Environment Variable:${NC}
+Environment Variable:
 
   export CARDANO_NODE_SOCKET_PATH="${LOCAL_SOCKET_PATH}"
 
-${YELLOW}Management Commands:${NC}
+Management Commands:$
 
   Stop bridge:      pkill -f "socat.*${LOCAL_SOCKET_NAME}"
                     or kill $SOCAT_PID
@@ -145,10 +145,10 @@ ${YELLOW}Management Commands:${NC}
 ${YELLOW}Next Steps:${NC}
 
   1. Export the socket path:
-     ${GREEN}export CARDANO_NODE_SOCKET_PATH="${LOCAL_SOCKET_PATH}"${NC}
+     export CARDANO_NODE_SOCKET_PATH="${LOCAL_SOCKET_PATH}"${NC}
   
   2. Run your Hydra scripts:
-     ${GREEN}npm run publish-scripts${NC}
+     npm run publish-scripts${NC}
 
 ${YELLOW}Keep this terminal open to maintain the bridge${NC}
 
