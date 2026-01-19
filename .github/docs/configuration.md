@@ -1,18 +1,16 @@
 ---
-title: Configuration
-layout: page
 ---
 
 # Configuration
 
-## Main Configuration File
-- `scripts/utils/config.sh`: Set participant names, network magic, Cardano/Hydra versions, and ports.
+Key configuration files and locations:
 
-## Protocol Parameters
-- `config/hydra/protocol-parameters.json`: Hydra protocol parameters. Export from your running cardano-node for best compatibility.
+- `scripts/utils/config.sh`: Main configuration (participants, versions, ports)
+- `config/hydra/protocol-parameters.json`: Hydra protocol parameters
+- `.env` (optional): Environment overrides (CARDANO_NODE_SOCKET_PATH, HYDRA_SCRIPTS_TX_ID, etc.)
 
-## Key Directories
-- `keys/`: Stores generated payment and Hydra keys for each participant.
+Sample important variables in `scripts/utils/config.sh`:
 
-## Logs
-- `logs/`: Stores logs for devnet and Hydra nodes.
+- `PARTICIPANTS=("alice" "bob" "carol")`
+- `BIN_DIR`, `KEYS_DIR`, `LOGS_DIR`
+- Yaci ports: `YACI_CLUSTER_API_PORT`, `YACI_STORE_PORT`, `YACI_OGMIOS_PORT`, `YACI_VIEWER_PORT`

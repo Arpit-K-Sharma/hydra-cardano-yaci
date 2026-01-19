@@ -1,13 +1,12 @@
 ---
-title: API Reference
-layout: page
 ---
 
 # API Reference
 
-This project is primarily script-driven. For advanced automation, you can interact with the Hydra node and Yaci DevKit APIs directly.
+This project primarily interacts with the following endpoints provided by Yaci DevKit and Hydra nodes:
 
-- [Yaci DevKit API](https://github.com/txpipe/yaci-devkit#api)
-- [Hydra Node API](https://github.com/input-output-hk/hydra/blob/main/hydra-node/README.md#api)
+- Yaci DevKit Admin API: `http://localhost:<YACI_CLUSTER_API_PORT>/local-cluster/api/...`
+- Yaci Store (Blockfrost-compatible): `http://localhost:<YACI_STORE_PORT>/api/v1`
+- Hydra node WebSocket API: `ws://localhost:<hydra-api-port>` (ports vary per participant)
 
-See the respective documentation for endpoints and usage examples.
+See the source scripts in `scripts/` for exact CLI and HTTP usage patterns.

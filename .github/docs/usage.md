@@ -1,11 +1,9 @@
 ---
-title: Usage
-layout: page
 ---
 
 # Usage
 
-## Native (Binary) Workflow
+## A. Native (Binary) Workflow
 1. Set up Cardano CLI and Hydra Node binaries:
    ```sh
    npm run setup:cardano-cli
@@ -33,7 +31,7 @@ layout: page
    npm run stop:devnet
    ```
 
-## Docker Workflow
+## B. Docker Workflow
 1. Set up Cardano CLI and Hydra Node Docker wrappers:
    ```sh
    npm run setup:docker:cardano-cli

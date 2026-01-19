@@ -1,29 +1,27 @@
 ---
-title: Getting Started
-layout: page
 ---
 
 # Getting Started
 
-Welcome to Hydra-Cardano-Yaci! This guide will help you quickly set up and run a Cardano devnet with Hydra Head support.
+## Quick start
 
-## Quick Start
-
-1. **Clone the repository:**
-   ```sh
-   git clone https://github.com/your-username/hydra-cardano-yaci.git
+1. Clone the repository
+   ```bash
+   git clone https://github.com/Arpit-K-Sharma/hydra-cardano-yaci
    cd hydra-cardano-yaci
    ```
-2. **Install prerequisites:**
-   ```sh
+
+2. Install prerequisites
+   ```bash
    npm run install:prerequisites
    ```
-3. **Configure participants and network:**
-   Edit `scripts/utils/config.sh` as needed.
-4. **Generate keys:**
-   ```sh
+
+3. Generate keys
+   ```bash
    npm run generate-keys
    ```
-5. **Choose your workflow:**
-   - [Native (Binary) Workflow](usage.md#native-binary-workflow)
-   - [Docker Workflow](usage.md#docker-workflow)
+
+4. Start devnet
+   ```bash
+   npm run start:devnet
+   ```

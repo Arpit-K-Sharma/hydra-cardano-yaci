@@ -1,16 +1,13 @@
-
 ---
-title: Documentation Home
-layout: page
 ---
 
-# Hydra-Cardano-Yaci Documentation
+# Hydra-Cardano-Yaci documentation
 
-Welcome! Use the navigation to explore guides and references for setting up and using Hydra-Cardano-Yaci.
+Welcome — this documentation site covers installation, configuration, usage, and troubleshooting for Hydra-Cardano-Yaci.
 
-- [Getting Started](getting-started.md)
+- [Getting started](getting-started.md)
 - [Installation](installation.md)
 - [Configuration](configuration.md)
 - [Usage](usage.md)
-- [API Reference](api-reference.md)
+- [API reference](api-reference.md)
 - [Troubleshooting](troubleshooting.md)
