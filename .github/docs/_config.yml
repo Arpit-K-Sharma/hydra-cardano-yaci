@@ -1,0 +1,6 @@
+title: Hydra-Cardano-Yaci Documentation
+description: Documentation for Hydra-Cardano-Yaci local devnet and Hydra workflows
+theme: minima
+markdown: kramdown
+kramdown:
+  input: GFM
