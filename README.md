@@ -153,7 +153,7 @@ When using Hydra 1.2.0 with Cardano node 10.1.4 (Conway era, Protocol 10.2) on a
 
 ## Documentation
 - See the [docs/](.github/docs/) folder for detailed guides
-- View Full Docs (https://YOUR_GITHUB_USERNAME.github.io/hydra-cardano-yaci/)  
+- View Full Docs (https://Arpit-K-Sharma.github.io/hydra-cardano-yaci/)  
 
 
 
